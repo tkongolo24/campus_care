@@ -1,11 +1,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/user_service.dart';
 
 import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
 
   User? _user;
   bool _isLoading = false;
@@ -53,10 +55,14 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
 
     try {
-      await _authService.login(
-        email: email,
-        password: password,
-      );
+      final credential = await _authService.login(
+  email: email,
+  password: password,
+);
+
+if (credential.user != null && credential.user!.emailVerified) {
+  await _userService.createUserProfile(credential.user!);
+}
       _errorMessage = null;
       return true;
     } on FirebaseAuthException catch (e) {
@@ -92,8 +98,12 @@ Future<void> checkEmailVerification() async {
   await _user?.reload();
 
   _user = FirebaseAuth.instance.currentUser;
+
+  if (_user != null && _user!.emailVerified) {
+    await _userService.createUserProfile(_user!);
+  }
+
   notifyListeners();
 }
+
 }
-
-
