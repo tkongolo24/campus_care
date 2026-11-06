@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/verify_email_screen.dart';
+import 'screens/student/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,11 +38,28 @@ class CampusCareApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('CampusCare is ready!'),
-        ),
-      ),
+      home: const AuthGate(),
+    );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, auth, child) {
+        if (auth.user == null) {
+          return const LoginScreen();
+        }
+
+        if (!auth.isEmailVerified) {
+          return const VerifyEmailScreen();
+        }
+
+        return const HomeScreen();
+      },
     );
   }
 }
