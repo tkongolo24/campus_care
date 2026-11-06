@@ -52,7 +52,27 @@ class IncidentProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+    // Update an incident's status.
   }
+  // Update an incident's status.
+    Future<bool> updateIncidentStatus({
+      required String incidentId,
+      required String status,
+    }) async {
+      try {
+        await _incidentService.updateIncidentStatus(
+          incidentId: incidentId,
+          status: status,
+        );
+
+        return true;
+      } catch (e) {
+        debugPrint('Status update error: $e');
+        _errorMessage = 'Could not update incident status.';
+        notifyListeners();
+        return false;
+      }
+    }
 
   Stream<List<Incident>> getUserIncidents(String userId) {
     return _incidentService.getUserIncidents(userId);

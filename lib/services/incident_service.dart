@@ -52,4 +52,16 @@ class IncidentService {
 
     return Incident.fromMap(doc.id, doc.data()!);
   }
+  // Update an incident's status.
+  Future<void> updateIncidentStatus({
+    required String incidentId,
+    required String status,
+  }) async {
+    await _firestore
+        .collection('incidents')
+        .doc(incidentId)
+        .update({
+      'status': status,
+    });
+}
 }

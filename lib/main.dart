@@ -8,7 +8,7 @@ import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/verify_email_screen.dart';
 import 'screens/student/home_screen.dart';
-
+import 'screens/staff/staff_dashboard_screen.dart';
 import 'providers/incident_provider.dart';
 
 void main() async {
@@ -52,6 +52,7 @@ class CampusCareApp extends StatelessWidget {
   }
 }
 
+
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -65,6 +66,18 @@ class AuthGate extends StatelessWidget {
 
         if (!auth.isEmailVerified) {
           return const VerifyEmailScreen();
+        }
+
+        if (auth.isCheckingRole) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (auth.isStaff) {
+          return const StaffDashboardScreen();
         }
 
         return const HomeScreen();

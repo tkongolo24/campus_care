@@ -6,6 +6,7 @@ import '../../models/incident.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/incident_provider.dart';
 import '../student/incident_details_screen.dart';
+import 'staff_incident_details_screen.dart';
 
 class StaffDashboardScreen extends StatelessWidget {
   const StaffDashboardScreen({super.key});
