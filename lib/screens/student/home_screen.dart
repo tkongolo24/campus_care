@@ -26,37 +26,87 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
-                Icons.shield_outlined,
-                size: 72,
-                color: Colors.indigo,
+              const SizedBox(height: 24),
+
+              // Welcome section
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.indigo.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.withValues(alpha: 0.10),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.shield_outlined,
+                        size: 56,
+                        color: Colors.indigo,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      'Welcome to CampusCare!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    Text(
+                      auth.user?.email ?? '',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 14,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      'Your safety matters. Report campus incidents '
+                      'so the appropriate staff can take action.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 32),
+
               const Text(
-                'Welcome to CampusCare!',
+                'What would you like to do?',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(auth.user?.email ?? ''),
-              const SizedBox(height: 16),
-              const Text(
-                'Your safety matters. Report campus incidents '
-                'so the appropriate staff can take action.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 28),
 
+              const SizedBox(height: 16),
+
+              // Report incident button
               SizedBox(
-                width: double.infinity,
+                height: 56,
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.push(
@@ -68,14 +118,18 @@ class HomeScreen extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text('Report an Incident'),
+                  label: const Text(
+                    'Report an Incident',
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
 
+              // My reports button
               SizedBox(
-                width: double.infinity,
+                height: 56,
                 child: OutlinedButton.icon(
                   onPressed: () {
                     Navigator.push(
@@ -87,7 +141,10 @@ class HomeScreen extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.history),
-                  label: const Text('My Reports'),
+                  label: const Text(
+                    'My Reports',
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
             ],

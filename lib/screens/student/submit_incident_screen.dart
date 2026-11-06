@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -41,20 +42,11 @@ class _SubmitIncidentScreenState
       return;
     }
 
-    if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an incident category.'),
-        ),
-      );
-      return;
-    }
-
     final success = await context.read<IncidentProvider>()
         .submitIncident(
-      description: _descriptionController.text,
+      description: _descriptionController.text.trim(),
       category: _selectedCategory!,
-      location: _locationController.text,
+      location: _locationController.text.trim(),
     );
 
     if (!mounted) return;
@@ -70,17 +62,33 @@ class _SubmitIncidentScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Incident reported successfully!'),
+          backgroundColor: Colors.green,
         ),
       );
     } else {
-      final error = context.read<IncidentProvider>().errorMessage;
+      final error =
+          context.read<IncidentProvider>().errorMessage;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error ?? 'Something went wrong.'),
+          backgroundColor: Colors.red,
         ),
       );
     }
+  }
+
+  Widget _buildLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   @override
@@ -89,116 +97,209 @@ class _SubmitIncidentScreenState
       appBar: AppBar(
         title: const Text('Report an Incident'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'What happened?',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Help us keep your campus safe.',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
 
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  hintText: 'Describe the incident...',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please describe the incident.';
-                  }
-                  return null;
-                },
-              ),
+                const SizedBox(height: 24),
 
-              const SizedBox(height: 20),
+                _buildLabel('What happened?'),
 
-              const Text(
-                'Category',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              DropdownButtonFormField<String>(
-                initialValue: _selectedCategory,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Select a category',
-                ),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a category.';
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                'Location',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              TextFormField(
-                controller: _locationController,
-                decoration: const InputDecoration(
-                  hintText: 'Where did it happen?',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter the location.';
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 30),
-
-              Consumer<IncidentProvider>(
-                builder: (context, provider, child) {
-                  return SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: provider.isLoading
-                          ? null
-                          : _submitReport,
-                      child: provider.isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text('Submit Report'),
+                TextFormField(
+                  controller: _descriptionController,
+                  maxLines: 4,
+                  maxLength: 500,
+                  decoration: InputDecoration(
+                    hintText: 'Describe the incident...',
+                    alignLabelWithHint: true,
+                    filled: true,
+                    fillColor: Colors.indigo.withValues(
+                      alpha: 0.03,
                     ),
-                  );
-                },
-              ),
-            ],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty) {
+                      return 'Please describe the incident.';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                _buildLabel('Category'),
+
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedCategory,
+                  decoration: InputDecoration(
+                    hintText: 'Select a category',
+                    filled: true,
+                    fillColor: Colors.indigo.withValues(
+                      alpha: 0.03,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                  ),
+                  items: _categories.map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select a category.';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                _buildLabel('Location'),
+
+                TextFormField(
+                  controller: _locationController,
+                  decoration: InputDecoration(
+                    hintText: 'Where did it happen?',
+                    prefixIcon: const Icon(
+                      Icons.location_on_outlined,
+                    ),
+                    filled: true,
+                    fillColor: Colors.indigo.withValues(
+                      alpha: 0.03,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty) {
+                      return 'Please enter the location.';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                _buildLabel('Photo attachment (optional)'),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.indigo.withValues(
+                      alpha: 0.04,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
+                  child: const Column(
+                    children: [
+                      Icon(
+                        Icons.add_a_photo_outlined,
+                        size: 32,
+                        color: Colors.indigo,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Photo uploads are not available yet.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'This feature will be enabled once '
+                        'photo storage is configured.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                Consumer<IncidentProvider>(
+                  builder: (context, provider, child) {
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton.icon(
+                        onPressed: provider.isLoading
+                            ? null
+                            : _submitReport,
+                        icon: provider.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.send),
+                        label: Text(
+                          provider.isLoading
+                              ? 'Submitting...'
+                              : 'Submit Report',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),

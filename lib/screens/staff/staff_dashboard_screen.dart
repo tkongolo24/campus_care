@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../models/incident.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/incident_provider.dart';
-import '../student/incident_details_screen.dart';
 import 'staff_incident_details_screen.dart';
 
 class StaffDashboardScreen extends StatelessWidget {
@@ -54,7 +53,9 @@ class StaffDashboardScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text('Signed in as ${auth.user?.email ?? ''}'),
+                Text(
+                  'Signed in as ${auth.user?.email ?? ''}',
+                ),
                 const SizedBox(height: 12),
                 const Text(
                   'Review reports submitted by students.',
@@ -100,7 +101,9 @@ class StaffDashboardScreen extends StatelessWidget {
                     final incident = incidents[index];
 
                     return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: const EdgeInsets.only(
+                        bottom: 12,
+                      ),
                       child: ListTile(
                         leading: const CircleAvatar(
                           child: Icon(Icons.report_problem),
@@ -113,7 +116,9 @@ class StaffDashboardScreen extends StatelessWidget {
                             const SizedBox(height: 6),
                             Text(incident.description),
                             const SizedBox(height: 4),
-                            Text('Location: ${incident.location}'),
+                            Text(
+                              'Location: ${incident.location}',
+                            ),
                             const SizedBox(height: 8),
                             Text(
                               incident.status.toUpperCase(),
@@ -135,7 +140,7 @@ class StaffDashboardScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  IncidentDetailsScreen(
+                                  StaffIncidentDetailsScreen(
                                 incident: incident,
                               ),
                             ),

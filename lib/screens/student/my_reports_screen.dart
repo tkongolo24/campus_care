@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,6 +18,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
   late Stream<List<Incident>> _reportsStream;
 
   String _selectedStatus = 'All';
+  String _searchQuery = '';
 
   final List<String> _statuses = [
     'All',
@@ -57,28 +59,45 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: DropdownButtonFormField<String>(
-              initialValue: _selectedStatus,
-              decoration: const InputDecoration(
-                labelText: 'Filter by status',
-                border: OutlineInputBorder(),
-              ),
-              items: _statuses.map((status) {
-                return DropdownMenuItem(
-                  value: status,
-                  child: Text(status),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedStatus = value;
-                  });
-                }
-              },
+            child: Column(
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Search reports',
+                    hintText: 'Search by category, description or location',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.trim().toLowerCase();
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedStatus,
+                  decoration: const InputDecoration(
+                    labelText: 'Filter by status',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _statuses.map((status) {
+                    return DropdownMenuItem(
+                      value: status,
+                      child: Text(status),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedStatus = value;
+                      });
+                    }
+                  },
+                ),
+              ],
             ),
           ),
-
           Expanded(
             child: StreamBuilder<List<Incident>>(
               stream: _reportsStream,
@@ -98,16 +117,29 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
 
                 final reports = snapshot.data ?? [];
 
-                final filteredReports = _selectedStatus == 'All'
-                    ? reports
-                    : reports.where((report) {
-                        return report.status.toLowerCase() ==
-                            _selectedStatus.toLowerCase();
-                      }).toList();
+                final filteredReports = reports.where((report) {
+                  final matchesStatus =
+                      _selectedStatus == 'All' ||
+                      report.status.toLowerCase() ==
+                          _selectedStatus.toLowerCase();
+
+                  final matchesSearch =
+                      report.category.toLowerCase().contains(
+                            _searchQuery,
+                          ) ||
+                      report.description.toLowerCase().contains(
+                            _searchQuery,
+                          ) ||
+                      report.location.toLowerCase().contains(
+                            _searchQuery,
+                          );
+
+                  return matchesStatus && matchesSearch;
+                }).toList();
 
                 if (filteredReports.isEmpty) {
                   return const Center(
-                    child: Text('No reports found.'),
+                    child: Text('No matching reports found.'),
                   );
                 }
 
@@ -126,7 +158,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => IncidentDetailsScreen(
+                              builder: (context) =>
+                                  IncidentDetailsScreen(
                                 incident: report,
                               ),
                             ),
