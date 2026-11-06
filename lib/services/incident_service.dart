@@ -1,0 +1,42 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../models/incident.dart';
+
+class IncidentService {
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
+
+  // Submit a new incident
+  Future<void> createIncident(Incident incident) async {
+    await _firestore.collection('incidents').add(
+      incident.toMap(),
+    );
+  }
+
+  // Retrieve all incidents
+  Stream<List<Incident>> getIncidents() {
+    return _firestore
+        .collection('incidents')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Incident.fromMap(doc.id, doc.data());
+      }).toList();
+    });
+  }
+
+  // Retrieve one incident
+  Future<Incident?> getIncident(String id) async {
+    final doc = await _firestore
+        .collection('incidents')
+        .doc(id)
+        .get();
+
+    if (!doc.exists || doc.data() == null) {
+      return null;
+    }
+
+    return Incident.fromMap(doc.id, doc.data()!);
+  }
+}
