@@ -1,8 +1,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../providers/incident_provider.dart';
+import '../../services/cloudinary_service.dart';
 
 class SubmitIncidentScreen extends StatefulWidget {
   const SubmitIncidentScreen({super.key});
@@ -19,7 +21,12 @@ class _SubmitIncidentScreenState
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
 
+  final ImagePicker _picker = ImagePicker();
+  final CloudinaryService _cloudinaryService =
+      CloudinaryService();
+
   String? _selectedCategory;
+  XFile? _selectedImage;
 
   final List<String> _categories = [
     'Theft',
@@ -37,41 +44,94 @@ class _SubmitIncidentScreenState
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1600,
+      );
+
+      if (image != null && mounted) {
+        setState(() {
+          _selectedImage = image;
+        });
+      }
+    } catch (e) {
+      debugPrint('Image picker error: $e');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not open gallery: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final success = await context.read<IncidentProvider>()
-        .submitIncident(
-      description: _descriptionController.text.trim(),
-      category: _selectedCategory!,
-      location: _locationController.text.trim(),
-    );
+    final incidentProvider =
+        context.read<IncidentProvider>();
 
-    if (!mounted) return;
+    String? photoUrl;
 
-    if (success) {
-      _descriptionController.clear();
-      _locationController.clear();
+    try {
+      if (_selectedImage != null) {
+        photoUrl = await _cloudinaryService.uploadImage(
+          _selectedImage!,
+        );
+      }
 
-      setState(() {
-        _selectedCategory = null;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Incident reported successfully!'),
-          backgroundColor: Colors.green,
-        ),
+      final success =
+          await incidentProvider.submitIncident(
+        description: _descriptionController.text.trim(),
+        category: _selectedCategory!,
+        location: _locationController.text.trim(),
+        photoUrl: photoUrl,
       );
-    } else {
-      final error =
-          context.read<IncidentProvider>().errorMessage;
+
+      if (!mounted) return;
+
+      if (success) {
+        _descriptionController.clear();
+        _locationController.clear();
+
+        setState(() {
+          _selectedCategory = null;
+          _selectedImage = null;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Incident reported successfully!',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              incidentProvider.errorMessage ??
+                  'Something went wrong.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error ?? 'Something went wrong.'),
+          content: Text('Photo upload failed: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -238,31 +298,39 @@ class _SubmitIncidentScreenState
                       color: Colors.grey.shade300,
                     ),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      Icon(
-                        Icons.add_a_photo_outlined,
-                        size: 32,
-                        color: Colors.indigo,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Photo uploads are not available yet.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
+                      if (_selectedImage != null)
+                        Text(
+                          'Selected: ${_selectedImage!.name}',
+                          textAlign: TextAlign.center,
+                        )
+                      else
+                        const Icon(
+                          Icons.add_a_photo_outlined,
+                          size: 32,
+                          color: Colors.indigo,
                         ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'This feature will be enabled once '
-                        'photo storage is configured.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
+
+                      const SizedBox(height: 12),
+
+                      OutlinedButton.icon(
+                        onPressed: _pickImage,
+                        icon: const Icon(
+                          Icons.photo_library_outlined,
                         ),
+                        label: const Text('Choose Photo'),
                       ),
+
+                      if (_selectedImage != null)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedImage = null;
+                            });
+                          },
+                          child: const Text('Remove Photo'),
+                        ),
                     ],
                   ),
                 ),

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -67,6 +68,59 @@ class _StaffIncidentDetailsScreenState
     }
   }
 
+  Widget _buildPhotoSection() {
+    final photoUrl = widget.incident.photoUrl;
+
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const Text(
+          'Attached Photo',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            photoUrl,
+            width: double.infinity,
+            height: 230,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+
+              return const SizedBox(
+                height: 230,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 150,
+                width: double.infinity,
+                color: Colors.grey.shade200,
+                alignment: Alignment.center,
+                child: const Text(
+                  'Unable to load attached photo.',
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,26 +136,35 @@ class _StaffIncidentDetailsScreenState
               widget.incident.category,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
+
             const SizedBox(height: 20),
+
             const Text(
               'Description',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(widget.incident.description),
+
             const SizedBox(height: 20),
+
             const Text(
               'Location',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(widget.incident.location),
+
+            _buildPhotoSection(),
+
             const SizedBox(height: 24),
+
             const Text(
               'Update Status',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
+
             DropdownButtonFormField<String>(
               initialValue: selectedStatus,
               decoration: const InputDecoration(
@@ -123,7 +186,9 @@ class _StaffIncidentDetailsScreenState
                       }
                     },
             ),
+
             const SizedBox(height: 24),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

@@ -56,11 +56,7 @@ class IncidentDetailsScreen extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              color: Colors.indigo,
-              size: 24,
-            ),
+            Icon(icon, color: Colors.indigo, size: 24),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -99,6 +95,60 @@ class IncidentDetailsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildPhotoSection() {
+    final photoUrl = incident.photoUrl;
+
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        const Text(
+          'Attached Photo',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 14),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Image.network(
+            photoUrl,
+            width: double.infinity,
+            height: 230,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+
+              return const SizedBox(
+                height: 230,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 150,
+                width: double.infinity,
+                color: Colors.grey.shade200,
+                alignment: Alignment.center,
+                child: const Text(
+                  'Unable to load attached photo.',
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(incident.status);
@@ -112,7 +162,6 @@ class IncidentDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Incident header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -141,8 +190,6 @@ class IncidentDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Read-only status
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -188,6 +235,8 @@ class IncidentDetailsScreen extends StatelessWidget {
               title: 'Location',
               value: incident.location,
             ),
+
+            _buildPhotoSection(),
 
             _buildInfoCard(
               icon: Icons.calendar_today_outlined,

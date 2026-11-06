@@ -393,7 +393,7 @@ class _StaffDashboardScreenState
                       shrinkWrap: true,
                       physics:
                           const NeverScrollableScrollPhysics(),
-                      childAspectRatio: 1.65,
+                      childAspectRatio: 1.35,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
                       children: [
