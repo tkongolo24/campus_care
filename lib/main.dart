@@ -1,6 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+
 import 'firebase_options.dart';
+import 'providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +13,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const CampusCareApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      child: const CampusCareApp(),
+    ),
+  );
 }
 
 class CampusCareApp extends StatelessWidget {
@@ -28,7 +37,7 @@ class CampusCareApp extends StatelessWidget {
       ),
       home: const Scaffold(
         body: Center(
-          child: Text('CampusCare is connected to Firebase!'),
+          child: Text('CampusCare is ready!'),
         ),
       ),
     );
