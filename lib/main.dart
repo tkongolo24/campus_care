@@ -9,6 +9,8 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/verify_email_screen.dart';
 import 'screens/student/home_screen.dart';
 
+import 'providers/incident_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -17,10 +19,17 @@ void main() async {
   );
 
   runApp(
+    MultiProvider(
+  providers: [
     ChangeNotifierProvider(
       create: (context) => AuthProvider(),
-      child: const CampusCareApp(),
     ),
+    ChangeNotifierProvider(
+      create: (context) => IncidentProvider(),
+    ),
+  ],
+  child: const CampusCareApp(),
+),
   );
 }
 

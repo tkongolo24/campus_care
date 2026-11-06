@@ -14,17 +14,17 @@ class IncidentService {
   }
 
   // Retrieve all incidents
-  Stream<List<Incident>> getIncidents() {
-    return _firestore
-        .collection('incidents')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Incident.fromMap(doc.id, doc.data());
-      }).toList();
-    });
-  }
+  Stream<List<Incident>> getUserIncidents(String userId) {
+  return _firestore
+      .collection('incidents')
+      .where('reporterId', isEqualTo: userId)
+      .snapshots()
+      .map((snapshot) {
+    return snapshot.docs.map((doc) {
+      return Incident.fromMap(doc.id, doc.data());
+    }).toList();
+  });
+}
 
   // Retrieve one incident
   Future<Incident?> getIncident(String id) async {

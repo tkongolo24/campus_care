@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -42,7 +43,6 @@ class IncidentProvider extends ChangeNotifier {
       );
 
       await _incidentService.createIncident(incident);
-
       return true;
     } catch (e) {
       _errorMessage = 'Could not submit incident. Please try again.';
@@ -52,5 +52,9 @@ class IncidentProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Stream<List<Incident>> getUserIncidents(String userId) {
+    return _incidentService.getUserIncidents(userId);
   }
 }
