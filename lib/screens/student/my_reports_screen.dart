@@ -11,11 +11,15 @@ class MyReportsScreen extends StatefulWidget {
   const MyReportsScreen({super.key});
 
   @override
-  State<MyReportsScreen> createState() => _MyReportsScreenState();
+  State<MyReportsScreen> createState() =>
+      _MyReportsScreenState();
 }
 
 class _MyReportsScreenState extends State<MyReportsScreen> {
   late Stream<List<Incident>> _reportsStream;
+
+  final TextEditingController _searchController =
+      TextEditingController();
 
   String _selectedStatus = 'All';
   String _searchQuery = '';
@@ -38,15 +42,212 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
         .getUserIncidents(user.uid);
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'resolved':
         return Colors.green;
       case 'under review':
-        return Colors.orange;
+        return Colors.orange.shade800;
       default:
         return Colors.blue;
     }
+  }
+
+  Widget _buildStatusBadge(String status) {
+    final color = _statusColor(status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+
+    return '$day/$month/${date.year}';
+  }
+
+  Widget _buildReportCard(Incident report) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 14),
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  IncidentDetailsScreen(incident: report),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.indigo.withValues(
+                  alpha: 0.10,
+                ),
+                child: const Icon(
+                  Icons.report_problem_outlined,
+                  color: Colors.indigo,
+                ),
+              ),
+
+              const SizedBox(width: 14),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      report.category,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+                      report.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 14,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            report.location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (report.createdAt != null) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Submitted: ${_formatDate(
+                              report.createdAt!.toDate(),
+                            )}',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
+
+                    _buildStatusBadge(report.status),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 4),
+
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey.shade500,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 60,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No matching reports found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try changing your search or status filter.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -58,15 +259,30 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(
+              16, 16, 16, 8,
+            ),
             child: Column(
               children: [
                 TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Search reports',
-                    hintText: 'Search by category, description or location',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search reports',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _searchQuery = '';
+                              });
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onChanged: (value) {
                     setState(() {
@@ -74,12 +290,16 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 12),
+
+                const SizedBox(height: 14),
+
                 DropdownButtonFormField<String>(
                   initialValue: _selectedStatus,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Filter by status',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   items: _statuses.map((status) {
                     return DropdownMenuItem(
@@ -98,6 +318,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               ],
             ),
           ),
+
           Expanded(
             child: StreamBuilder<List<Incident>>(
               stream: _reportsStream,
@@ -111,7 +332,10 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
 
                 if (snapshot.hasError) {
                   return const Center(
-                    child: Text('Could not load your reports.'),
+                    child: Text(
+                      'Could not load your reports. Please try again.',
+                      textAlign: TextAlign.center,
+                    ),
                   );
                 }
 
@@ -138,57 +362,17 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 }).toList();
 
                 if (filteredReports.isEmpty) {
-                  return const Center(
-                    child: Text('No matching reports found.'),
-                  );
+                  return _buildEmptyState();
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                  padding: const EdgeInsets.fromLTRB(
+                    16, 12, 16, 20,
                   ),
                   itemCount: filteredReports.length,
                   itemBuilder: (context, index) {
-                    final report = filteredReports[index];
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  IncidentDetailsScreen(
-                                incident: report,
-                              ),
-                            ),
-                          );
-                        },
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.report_problem),
-                        ),
-                        title: Text(report.category),
-                        subtitle: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 6),
-                            Text(report.description),
-                            const SizedBox(height: 4),
-                            Text('Location: ${report.location}'),
-                            const SizedBox(height: 8),
-                            Text(
-                              report.status.toUpperCase(),
-                              style: TextStyle(
-                                color: _statusColor(report.status),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        isThreeLine: true,
-                      ),
+                    return _buildReportCard(
+                      filteredReports[index],
                     );
                   },
                 );
