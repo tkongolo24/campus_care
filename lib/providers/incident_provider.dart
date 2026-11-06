@@ -57,4 +57,7 @@ class IncidentProvider extends ChangeNotifier {
   Stream<List<Incident>> getUserIncidents(String userId) {
     return _incidentService.getUserIncidents(userId);
   }
+  Stream<List<Incident>> getAllIncidents() {
+  return _incidentService.getAllIncidents();
+}
 }
